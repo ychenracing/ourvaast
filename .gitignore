@@ -2,7 +2,9 @@
 bin/
 .idea/
 .settings/
+out/
 
 #file:
 .project
 ourvaast.iml
+.DS_Store
