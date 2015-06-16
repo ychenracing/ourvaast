@@ -1,5 +1,5 @@
 /**
- * 
+ * @Copyright cn.edu.fudan.iipl
  */
 package cn.edu.fudan.iipl.onekey;
 
@@ -27,18 +27,21 @@ import cn.edu.fudan.iipl.ourvaast.Statistic;
 
 
 /**
- * @author Administrator
+ * <pre>Onekey to run ourvaast.
+ * </pre>
  *
+ * @author Yong Chen
+ * @since 2015-06-16
  */
 public class Onekey {
 
-	private String inputFolderPath = null;                    // -i
-	private String diseaseVariantsFilePath = null;			  // -v
-	private String toBeShuffledGeneNameFilePath = null;		  // -g
-	private String toBeShuffledFrequencyFilePath = null;	  // -f
-	private String inheritanceModel = null;					  // -m
-	private int toBeShuffledVariantsNumber = 0;				  // -n
-	private String outputPath = null;   					  // -o
+	private String inputFolderPath = null;						// -i
+	private String diseaseVariantsFilePath = null;				// -v
+	private String toBeShuffledGeneNameFilePath = null;			// -g
+	private String toBeShuffledFrequencyFilePath = null;		// -f
+	private String inheritanceModel = null;						// -m
+	private int toBeShuffledVariantsNumber = 0;					// -n
+	private String outputPath = null;							// -o
 
 	public static void main(String[] args) throws InterruptedException {
 		if(args.length < 14){
@@ -51,7 +54,7 @@ public class Onekey {
 		/** process input, preserve input args. */
 		onekey.processInput(args);
 		
-		String caseFolderPath = onekey.getOutputPath() + File.separator + "case";
+		String caseFolderPath = onekey.getOutputPath() + File.separator + "case_with_score";
 		String controlWithScoreFolderPath = onekey.getOutputPath() + File.separator + "control_with_score";
 		String controlFolderPath = onekey.getOutputPath() + File.separator + "control";
 		String shuffledCaseFolderPath = onekey.getOutputPath() + File.separator + "shuffledCase";
@@ -370,6 +373,26 @@ public class Onekey {
 				 	+ "by dbNSFP. Then you want to shuffle several variants of certain genes "
 				 	+ "into case, so a file contains a disease gene list is needed. You must "
 				 	+ "specify the inheritance model, such as \"recessive_model\" or \"dominant_model\".";
+		usage += "\n\n";
+		usage += "Usage: java -jar -ourvaast.jar";
+		usage += "[Options]:";
+		usage += "\n\t";
+		usage += "-i inputFolderPath: [required] The path to folder contains all samples. We will randomly pick up half number of these total sample as case, then repeat it for control.";
+		usage += "\n\t";
+		usage += "-v diseaseVariantsFilePath: [required] The path to pathogenic variants file such Clinvar of HGMD pathogenic variants file. We will extract all pathogenic variants of genes specified by you from this file.";
+		usage += "\n\t";
+		usage += "-g toBeShuffledGeneNameFilePath: [required] The path to the file whose content is a list of disease gene names.";
+		usage += "\n\t";
+		usage += "-f toBeShuffledFrequencyFilePath: [required] The path to the file whose content is a list of frequency, such as \"0.02, 0.03 ...\".";
+		usage += "\n\t";
+		usage += "-m inheritanceModel: [required] Inheritance model, such as \"recessive_model\" or \"dominant_model\".";
+		usage += "\n\t";
+		usage += "-n toBeShuffledVariantsNumber: [required] Number of variants to be picked up and shuffled into each case sample. "
+					+ "First we extract all pathogenic variants from the file [-v diseaseVariantsFilePath] you input. So we get all pathogenic variants you are interested in. "
+					+ "For each sample, we randomly picked up this number(you input from [-n shuffledVariantsNumber]) of variants from all these pathogenic variants, "
+					+ "and shuffled them into samples according to frequency.";
+		usage += "\n\t";
+		usage += "-o outputPath: [required] The output path.";
 		System.out.println(usage);
 	}
 

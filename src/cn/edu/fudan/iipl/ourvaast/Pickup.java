@@ -66,8 +66,8 @@ public class Pickup {
 		List<String> fileNameList = new ArrayList<String>();
 		fileNameList.addAll(Arrays.asList(new File(inputFolder).list()));
 		
-		File caseFolderFile = new File(outputFolder + File.separator + "case");
-		File controlFolderFile = new File(outputFolder + File.separator + "control");
+		File caseFolderFile = new File(outputFolder + File.separator + "case_with_score");
+		File controlFolderFile = new File(outputFolder + File.separator + "control_with_score");
 		
 		dirCreate(getCanonicalPath(caseFolderFile));
 		dirCreate(getCanonicalPath(controlFolderFile));
