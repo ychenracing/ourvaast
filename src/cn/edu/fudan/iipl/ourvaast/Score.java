@@ -4,7 +4,12 @@
 
 package cn.edu.fudan.iipl.ourvaast;
 
-import static cn.edu.fudan.iipl.util.FileUtil.*;
+import static cn.edu.fudan.iipl.util.FileUtil.dirCreate;
+import static cn.edu.fudan.iipl.util.FileUtil.dirJudge;
+import static cn.edu.fudan.iipl.util.FileUtil.fileCreate;
+import static cn.edu.fudan.iipl.util.FileUtil.fileJudge;
+import static cn.edu.fudan.iipl.util.FileUtil.getCanonicalPath;
+import static cn.edu.fudan.iipl.util.FileUtil.getFileName;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -489,10 +494,10 @@ public class Score {
     enum InputEnum {
         CASE_IN,      //input option "-casein"
         CONTROL_IN,   //input option "-controlin"
-        FREQUENCY,   //input option "-frequency"
-        INHERITANCE, //input option "-inheritance"
+        FREQUENCY,    //input option "-frequency"
+        INHERITANCE,  //input option "-inheritance"
         CASE_OUT,     //input option "-caseout"
-        CONTROL_OUT;  //input option "-controlout"
+        CONTROL_OUT   //input option "-controlout"
     }
 
     class MyComparator implements Comparator<String> {
@@ -506,11 +511,11 @@ public class Score {
                 if (!o2.equals(".")) // o1 is "." and o2 is not "."
                     return -1;
             } else {
-                if (o2.equals(".")) // o1 is not "." and o2 is "."
+                if (o2.equals("."))  // o1 is not "." and o2 is "."
                     return 1;
             }
 
-            // both o1 and o2 are numbers.
+            /** both o1 and o2 are numbers. */
             return Double.valueOf(o1).compareTo(Double.valueOf(o2));
         }
     }

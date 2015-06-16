@@ -4,7 +4,10 @@
 
 package cn.edu.fudan.iipl.ourvaast;
 
-import static cn.edu.fudan.iipl.util.FileUtil.*;
+import static cn.edu.fudan.iipl.util.FileUtil.dirJudge;
+import static cn.edu.fudan.iipl.util.FileUtil.dirCreate;
+import static cn.edu.fudan.iipl.util.FileUtil.getCanonicalPath;
+import static cn.edu.fudan.iipl.util.FileUtil.copyFile;
 
 import java.io.File;
 import java.util.ArrayList;

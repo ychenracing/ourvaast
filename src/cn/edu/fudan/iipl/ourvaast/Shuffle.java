@@ -4,7 +4,12 @@
 
 package cn.edu.fudan.iipl.ourvaast;
 
-import static cn.edu.fudan.iipl.util.FileUtil.*;
+import static cn.edu.fudan.iipl.util.FileUtil.copyFile;
+import static cn.edu.fudan.iipl.util.FileUtil.dirCreate;
+import static cn.edu.fudan.iipl.util.FileUtil.dirJudge;
+import static cn.edu.fudan.iipl.util.FileUtil.fileCreate;
+import static cn.edu.fudan.iipl.util.FileUtil.fileJudge;
+import static cn.edu.fudan.iipl.util.FileUtil.getCanonicalPath;
 
 import java.io.BufferedReader;
 import java.io.File;

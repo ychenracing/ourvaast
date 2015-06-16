@@ -4,7 +4,13 @@
 
 package cn.edu.fudan.iipl.ourvaast;
 
-import static cn.edu.fudan.iipl.util.FileUtil.*;
+import static cn.edu.fudan.iipl.util.FileUtil.fileCreate;
+import static cn.edu.fudan.iipl.util.FileUtil.fileJudge;
+import static cn.edu.fudan.iipl.util.FileUtil.dirCreate;
+import static cn.edu.fudan.iipl.util.FileUtil.dirJudge;
+import static cn.edu.fudan.iipl.util.FileUtil.dirsCreate;
+import static cn.edu.fudan.iipl.util.FileUtil.getCanonicalPath;
+import static cn.edu.fudan.iipl.util.FileUtil.getFileName;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -33,8 +39,8 @@ import java.util.concurrent.TimeUnit;
  */
 public class Statistic {
 
-    private String caseFolderPath = null;  // E:\BaiduYunDownload\shuffledCase\geneScore        recessive_model folder in this path, then the frequencies folder.
-    private String controlFolderPath = null; //E:\BaiduYunDownload\control\geneScore            recessive_model folder in this path, but no frequencies folder.
+    private String caseFolderPath = null;    // recessive_model folder in this path, then the frequencies folder.
+    private String controlFolderPath = null; // recessive_model folder in this path, but no frequencies folder.
     private String toBeShuffledFrequencyFilePath = null;
     private String inheritanceModel = null;
     private String caseOutputPath = null;
@@ -537,10 +543,10 @@ public class Statistic {
     enum InputEnum {
         CASE_IN,      //input option "-casein"
         CONTROL_IN,   //input option "-controlin"
-        FREQUENCY,   //input option "-frequency"
-        INHERITANCE, //input option "-inheritance"
+        FREQUENCY,    //input option "-frequency"
+        INHERITANCE,  //input option "-inheritance"
         CASE_OUT,     //input option "-caseout"
-        CONTROL_OUT;  //input option "-controlout"
+        CONTROL_OUT   //input option "-controlout"
     }
 
 }
