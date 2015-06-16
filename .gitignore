@@ -1,0 +1,8 @@
+#folder:
+bin/
+.idea/
+.settings/
+
+#file:
+.project
+ourvaast.iml
