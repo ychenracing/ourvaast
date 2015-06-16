@@ -8,3 +8,4 @@ out/
 .project
 ourvaast.iml
 .DS_Store
+eclipse-java-google-style.xml
