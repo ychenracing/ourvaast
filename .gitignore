@@ -9,3 +9,4 @@ out/
 ourvaast.iml
 .DS_Store
 eclipse-java-google-style.xml
+vaast/refGene_hg19.gff3
