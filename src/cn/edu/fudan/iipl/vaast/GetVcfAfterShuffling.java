@@ -7,6 +7,7 @@ package cn.edu.fudan.iipl.vaast;
 import static cn.edu.fudan.iipl.util.FileUtil.dirCreate;
 import static cn.edu.fudan.iipl.util.FileUtil.dirJudge;
 import static cn.edu.fudan.iipl.util.FileUtil.fileCreate;
+import static cn.edu.fudan.iipl.util.FileUtil.fileJudge;
 import static cn.edu.fudan.iipl.util.FileUtil.getCanonicalPath;
 
 import java.io.BufferedReader;
@@ -26,23 +27,35 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Shuffle positive variants into case.
+ * Get vcf format of samples after shuffling.
  *
  * @author Yong Chen
  * @since 2015-06-17
  */
-public class GetVcfAfterShuffled {
+public class GetVcfAfterShuffling {
 
     private String vcfSamplesFolderPath = null;
     private String caseFrequencyFolderPath = null;
     private String toBeShuffledGeneNameFilePath = null;
-
+    private String outputPath = null;
+    
+    enum InputEnum {
+        FREQUENCY, GENE, OUT, VCF
+    }
+    
     public static void main(String[] args) {
+        if (args.length < 8) {
+            usage();
+            return;
+        }
 
-        GetVcfAfterShuffled getVcfAfterShuffled = new GetVcfAfterShuffled();
+        GetVcfAfterShuffling getVcfAfterShuffling = new GetVcfAfterShuffling();
+
+        /** process input, preserve input args. */
+        getVcfAfterShuffling.processInput(args);
 
         /** simplify vcf files. */
-        getVcfAfterShuffled.simplifyVcf(getVcfAfterShuffled.getVcfSamplesFolderPath());
+        getVcfAfterShuffling.simplifyVcf(getVcfAfterShuffling.getVcfSamplesFolderPath());
 
 
         /** read disease names. */
@@ -51,7 +64,7 @@ public class GetVcfAfterShuffled {
         try {
             geneNameFileReader =
                     new BufferedReader(new FileReader(
-                            getVcfAfterShuffled.getToBeShuffledGeneNameFilePath()));
+                            getVcfAfterShuffling.getToBeShuffledGeneNameFilePath()));
             String tempString = null;
             while ((tempString = geneNameFileReader.readLine()) != null) {
                 String[] geneNames = tempString.trim().split("\\s+");
@@ -72,103 +85,77 @@ public class GetVcfAfterShuffled {
         }
 
         String simplifiedVcfFolderPath =
-                getVcfAfterShuffled.getVcfSamplesFolderPath() + "_simplified";
+                getVcfAfterShuffling.getVcfSamplesFolderPath() + "_simplified";
 
-        getVcfAfterShuffled.getVcfAfterShuffled(getVcfAfterShuffled.getCaseFrequencyFolderPath(),
-                simplifiedVcfFolderPath, getVcfAfterShuffled.getCaseFrequencyFolderPath()
-                        + File.separator + "vcf" + File.separator + "case", new HashSet<String>(
-                        diseaseGeneNameList));
+        getVcfAfterShuffling.getVcfAfterShuffled(getVcfAfterShuffling.getCaseFrequencyFolderPath(),
+                simplifiedVcfFolderPath, getVcfAfterShuffling.getOutputPath() + File.separator
+                        + "case", new HashSet<String>(diseaseGeneNameList));
 
 
-        getVcfAfterShuffled
-                .copyVcfToControlFolder(
-                        simplifiedVcfFolderPath,
-                        getVcfAfterShuffled.getCaseFrequencyFolderPath()
-                        + File.separator + "vcf" + File.separator + "case",
-                        getVcfAfterShuffled.getCaseFrequencyFolderPath() + File.separator + "vcf"
-                                + File.separator + "control");
+        getVcfAfterShuffling.copyVcfToControlFolder(simplifiedVcfFolderPath,
+                getVcfAfterShuffling.getOutputPath() + File.separator + "case",
+                getVcfAfterShuffling.getOutputPath() + File.separator + "control");
 
     }
-
-    public String getCaseFrequencyFolderPath() {
-        return caseFrequencyFolderPath;
+    
+    public static void usage() {
+        String usage = "\n\t";
+        usage += "This modual was designed to get vcf format of sample files after shuffling. ";
+        usage += "\n\t";
+        usage +=
+                "Usage: java GetVcfAfterShuffling"
+                        + "\n\t"
+                        + "-vcf vcfSamplesFolderPath: [required] The directory for all vcf samples. We will simplify these vcf samples first(retain columns 0-9, 14-15, discard others)."
+                        + "\n\t"
+                        + "-frequency caseFrequencyFolderPath: [required] The directory for case variant score folder. There must be frequency folders in this path, such as \"2%, 3%, 4%...\"."
+                        + "\n\t"
+                        + "-gene toBeShuffledGeneNameFilePath: [required] The path to the file whose content is a list of disease gene names."
+                        + "\n\t" + "-out outputPath: [required] The output path.";
+        System.out.println(usage);
     }
-
-    public void setCaseFrequencyFolderPath(String caseFrequencyFolderPath) {
-        this.caseFrequencyFolderPath = caseFrequencyFolderPath;
-    }
-
-    public String getVcfSamplesFolderPath() {
-        return vcfSamplesFolderPath;
-    }
-
-    public void setVcfSamplesFolderPath(String vcfSamplesFolderPath) {
-        this.vcfSamplesFolderPath = vcfSamplesFolderPath;
-    }
-
-    public String getToBeShuffledGeneNameFilePath() {
-        return toBeShuffledGeneNameFilePath;
-    }
-
-    public void setToBeShuffledGeneNameFilePath(String toBeShuffledGeneNameFilePath) {
-        this.toBeShuffledGeneNameFilePath = toBeShuffledGeneNameFilePath;
-    }
-
+    
     /**
-     * simplify all vcf Files, retain columns range from 0~9, 14~15.
+     * copy vcf files(control) to target folder, excluding those in case folder.
      * 
-     * @param vcfFolderPath The path to folder contains all samples in vcf format.
+     * @param args
      */
-    public void simplifyVcf(String vcfFolderPath) {
-        vcfFolderPath = getCanonicalPath(vcfFolderPath);
-        dirJudge(vcfFolderPath);
-        File vcfFile = new File(vcfFolderPath);
-        String folderName = vcfFile.getName();
-        String parentFolderPath = vcfFile.getParent();
-        String outputFolderPath = parentFolderPath + File.separator + folderName + "_simplified";
-        dirCreate(outputFolderPath);
+    public void copyVcfToControlFolder(String vcfFilesPath, String caseVcfFilesPath,
+            String targetPath) {
+        try {
+            dirJudge(vcfFilesPath);
+            dirJudge(caseVcfFilesPath);
+            dirCreate(targetPath);
 
-        String[] vcfFileNames = vcfFile.list();
-        BufferedReader br = null;
-        StringBuilder writeString = new StringBuilder();
-        String readString = null;
-        for (String fileName : vcfFileNames) {
-            fileCreate(outputFolderPath + File.separator + fileName);
-            System.out.println("Simplifying " + fileName + " now!");
-            BufferedWriter bWriter = null;
-            try {
-                bWriter =
-                        new BufferedWriter(new FileWriter(outputFolderPath + File.separator
-                                + fileName));
-                br = new BufferedReader(new FileReader(vcfFolderPath + File.separator + fileName));
-                while ((readString = br.readLine()) != null) {
-                    String[] feature = readString.trim().split("\\s+");
-                    for (int i = 0; i < feature.length; i++) {
-                        if (i <= 9 || i > 13 && i < 16) {
-                            writeString.append(feature[i]);
-                            if (i < 15) {
-                                writeString.append("\t");
-                            } else {
-                                writeString.append("\n");
-                            }
-                        }
+            caseVcfFilesPath =
+                    caseVcfFilesPath + File.separator + new File(caseVcfFilesPath).list()[0];
+            dirJudge(caseVcfFilesPath);
+
+            Set<String> vcfSet =
+                    new HashSet<String>(Arrays.asList(new File(caseVcfFilesPath).list()));
+            String[] grossVcfFileNames = new File(vcfFilesPath).list();
+            for (String vcfFile : grossVcfFileNames) {
+                if (!vcfSet.contains(vcfFile)) {
+                    BufferedReader br =
+                            new BufferedReader(new FileReader(vcfFilesPath + File.separatorChar
+                                    + vcfFile));
+                    BufferedWriter bw =
+                            new BufferedWriter(new FileWriter(targetPath + File.separatorChar
+                                    + vcfFile));
+                    String tempString = null, writeString = "";
+                    while ((tempString = br.readLine()) != null) {
+                        writeString += tempString + "\n";
                     }
-                }
-                bWriter.write(writeString.toString(), 0, writeString.length());
-                writeString = new StringBuilder();
-            } catch (IOException e) {
-                e.printStackTrace();
-            } finally {
-                try {
-                    bWriter.close();
+                    bw.write(writeString, 0, writeString.length());
+                    bw.close();
                     br.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
+                    writeString = null;
+                    tempString = null;
                 }
             }
+            System.out.println("copyVcfToControlFolder done!");
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-        System.out.println("simplifyVcf done!");
-        System.out.println("Output at " + outputFolderPath);
     }
 
     /**
@@ -194,7 +181,7 @@ public class GetVcfAfterShuffled {
 
     /**
      * This modual will convert variants to vcf format after shuffled for case only(see
-     * {@link GetVcfAfterShuffled#copyVcfToControlFolder} for control). It will fabricate the vcf
+     * {@link GetVcfAfterShuffling#copyVcfToControlFolder} for control). It will fabricate the vcf
      * format of those shuffled variants extracted from positive controls.
      * 
      * @param shuffledFrequencyFolderPath the folder in which contains different frequency folders
@@ -285,46 +272,118 @@ public class GetVcfAfterShuffled {
         }
     }
 
-    /**
-     * copy vcf files(control) to target folder, excluding those in case folder.
-     * 
-     * @param args
-     */
-    public void copyVcfToControlFolder(String vcfFilesPath, String caseVcfFilesPath,
-            String targetPath) {
-        try {
-            dirJudge(vcfFilesPath);
-            dirJudge(caseVcfFilesPath);
-            dirCreate(targetPath);
-            
-            caseVcfFilesPath = caseVcfFilesPath + File.separator + new File(caseVcfFilesPath).list()[0];
-            dirJudge(caseVcfFilesPath);
-            
-            Set<String> vcfSet =
-                    new HashSet<String>(Arrays.asList(new File(caseVcfFilesPath).list()));
-            String[] grossVcfFileNames = new File(vcfFilesPath).list();
-            for (String vcfFile : grossVcfFileNames) {
-                if (!vcfSet.contains(vcfFile)) {
-                    BufferedReader br =
-                            new BufferedReader(new FileReader(vcfFilesPath + File.separatorChar
-                                    + vcfFile));
-                    BufferedWriter bw =
-                            new BufferedWriter(new FileWriter(targetPath + File.separatorChar
-                                    + vcfFile));
-                    String tempString = null, writeString = "";
-                    while ((tempString = br.readLine()) != null) {
-                        writeString += tempString + "\n";
-                    }
-                    bw.write(writeString, 0, writeString.length());
-                    bw.close();
-                    br.close();
-                    writeString = null;
-                    tempString = null;
+    public void processInput(String[] args) {
+        for (int i = 0; i < 8; i++) {
+            if (i % 2 == 0) {
+                switch (InputEnum.valueOf(args[i].substring(1).toUpperCase())) {
+                    case VCF:
+                        dirJudge(args[++i]);
+                        setVcfSamplesFolderPath(getCanonicalPath(args[i]));
+                        break;
+                    case FREQUENCY:
+                        dirJudge(args[++i]);
+                        setCaseFrequencyFolderPath(getCanonicalPath(args[i]));
+                        break;
+                    case GENE:
+                        fileJudge(args[++i]);
+                        setToBeShuffledGeneNameFilePath(getCanonicalPath(args[i]));
+                        break;
+                    case OUT:
+                        dirCreate(args[++i]);
+                        setOutputPath(getCanonicalPath(args[i]));
+                        break;
                 }
             }
-            System.out.println("copyVcfToControlFolder done!");
-        } catch (IOException e) {
-            e.printStackTrace();
         }
+    }
+
+    /**
+     * simplify all vcf Files, retain columns range from 0~9, 14~15.
+     * 
+     * @param vcfFolderPath The path to folder contains all samples in vcf format.
+     */
+    public void simplifyVcf(String vcfFolderPath) {
+        vcfFolderPath = getCanonicalPath(vcfFolderPath);
+        dirJudge(vcfFolderPath);
+        File vcfFile = new File(vcfFolderPath);
+        String folderName = vcfFile.getName();
+        String parentFolderPath = vcfFile.getParent();
+        String outputFolderPath = parentFolderPath + File.separator + folderName + "_simplified";
+        dirCreate(outputFolderPath);
+
+        String[] vcfFileNames = vcfFile.list();
+        BufferedReader br = null;
+        StringBuilder writeString = new StringBuilder();
+        String readString = null;
+        for (String fileName : vcfFileNames) {
+            fileCreate(outputFolderPath + File.separator + fileName);
+            System.out.println("Simplifying " + fileName + " now!");
+            BufferedWriter bWriter = null;
+            try {
+                bWriter =
+                        new BufferedWriter(new FileWriter(outputFolderPath + File.separator
+                                + fileName));
+                br = new BufferedReader(new FileReader(vcfFolderPath + File.separator + fileName));
+                while ((readString = br.readLine()) != null) {
+                    String[] feature = readString.trim().split("\\s+");
+                    for (int i = 0; i < feature.length; i++) {
+                        if (i <= 9 || i > 13 && i < 16) {
+                            writeString.append(feature[i]);
+                            if (i < 15) {
+                                writeString.append("\t");
+                            } else {
+                                writeString.append("\n");
+                            }
+                        }
+                    }
+                }
+                bWriter.write(writeString.toString(), 0, writeString.length());
+                writeString = new StringBuilder();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+                try {
+                    bWriter.close();
+                    br.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        System.out.println("simplifyVcf done!");
+        System.out.println("Output at " + outputFolderPath);
+    }
+    
+
+    public String getCaseFrequencyFolderPath() {
+        return caseFrequencyFolderPath;
+    }
+
+    public String getOutputPath() {
+        return outputPath;
+    }
+
+    public String getToBeShuffledGeneNameFilePath() {
+        return toBeShuffledGeneNameFilePath;
+    }
+
+    public String getVcfSamplesFolderPath() {
+        return vcfSamplesFolderPath;
+    }
+
+    public void setCaseFrequencyFolderPath(String caseFrequencyFolderPath) {
+        this.caseFrequencyFolderPath = caseFrequencyFolderPath;
+    }
+
+    public void setOutputPath(String outputPath) {
+        this.outputPath = outputPath;
+    }
+
+    public void setToBeShuffledGeneNameFilePath(String toBeShuffledGeneNameFilePath) {
+        this.toBeShuffledGeneNameFilePath = toBeShuffledGeneNameFilePath;
+    }
+
+    public void setVcfSamplesFolderPath(String vcfSamplesFolderPath) {
+        this.vcfSamplesFolderPath = vcfSamplesFolderPath;
     }
 }

@@ -189,11 +189,11 @@ public class Statistic {
         for (int i = 0; i < 12; i++) {
             if (i % 2 == 0) {
                 switch (InputEnum.valueOf(args[i].substring(1).toUpperCase())) {
-                    case CASE_IN:
+                    case CASEIN:
                         dirJudge(args[++i]);
                         this.caseFolderPath = getCanonicalPath(args[i]);
                         break;
-                    case CONTROL_IN:
+                    case CONTROLIN:
                         dirJudge(args[++i]);
                         this.controlFolderPath = getCanonicalPath(args[i]);
                         break;
@@ -209,11 +209,11 @@ public class Statistic {
                             System.exit(1);
                         }
                         break;
-                    case CASE_OUT:
+                    case CASEOUT:
                         dirCreate(args[++i]);
                         this.caseOutputPath = getCanonicalPath(args[i]);
                         break;
-                    case CONTROL_OUT:
+                    case CONTROLOUT:
                         dirCreate(args[++i]);
                         this.controlOutputPath = getCanonicalPath(args[i]);
                         break;
@@ -571,12 +571,12 @@ public class Statistic {
     }
 
     enum InputEnum {
-        CASE_IN, // input option "-casein"
-        CONTROL_IN, // input option "-controlin"
-        FREQUENCY, // input option "-frequency"
+        CASEIN,      // input option "-casein"
+        CONTROLIN,   // input option "-controlin"
+        FREQUENCY,   // input option "-frequency"
         INHERITANCE, // input option "-inheritance"
-        CASE_OUT, // input option "-caseout"
-        CONTROL_OUT // input option "-controlout"
+        CASEOUT,     // input option "-caseout"
+        CONTROLOUT   // input option "-controlout"
     }
 
 }

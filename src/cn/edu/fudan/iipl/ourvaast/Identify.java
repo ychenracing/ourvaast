@@ -160,7 +160,7 @@ public class Identify {
         for (int i = 0; i < 8; i++) {
             if (i % 2 == 0) {
                 switch (InputEnum.valueOf(args[i].substring(1).toUpperCase())) {
-                    case CASE_IN:
+                    case CASEIN:
                         dirJudge(args[++i]);
                         this.caseFolderPath = getCanonicalPath(args[i]);
                         break;
@@ -386,10 +386,10 @@ public class Identify {
     }
 
     enum InputEnum {
-        CASE_IN, // input option "-casein"
-        FREQUENCY, // input option "-frequency"
+        CASEIN,      // input option "-casein"
+        FREQUENCY,   // input option "-frequency"
         INHERITANCE, // input option "-inheritance"
-        OUT, // input option "-out"
+        OUT,         // input option "-out"
     }
 
 
